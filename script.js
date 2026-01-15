@@ -602,9 +602,7 @@ el.simuladoBtn.addEventListener("click", () => startGame(true));
 el.nextBtn.addEventListener("click", nextQuestion);
 
 el.backMenuBtn.addEventListener("click", () => {
-  if (confirm("Voltar ao menu? A rodada atual será perdida.")) {
-    showMenu();
-  }
+  showMenu();
 });
 
 el.summaryBtn.addEventListener("click", () => {
