@@ -3,6 +3,73 @@ import { QUESTIONS } from "./questions.js";
 
 console.log("✅ UEMG Quest Master iniciado");
 
+// ================================
+// PROGRESSO (localStorage)
+// ================================
+const STORAGE_KEY = "uemgQuestMaster_progress_v1";
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    console.error("Erro ao carregar progresso:", e);
+    return null;
+  }
+}
+
+function saveProgress(data) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error("Erro ao salvar progresso:", e);
+  }
+}
+
+function resetProgress() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+let progress = loadProgress() || {
+  totalAnswered: 0,
+  totalCorrect: 0,
+  bySubject: {},
+  byLevel: {},
+  mistakes: [],
+  lastSessionAt: null
+};
+
+function registerAnswer(questionObj, chosenIndex, isCorrect) {
+  progress.totalAnswered += 1;
+  if (isCorrect) progress.totalCorrect += 1;
+
+  const s = questionObj.subject;
+  if (!progress.bySubject[s]) progress.bySubject[s] = { answered: 0, correct: 0 };
+  progress.bySubject[s].answered += 1;
+  if (isCorrect) progress.bySubject[s].correct += 1;
+
+  const lvl = questionObj.level;
+  if (!progress.byLevel[lvl]) progress.byLevel[lvl] = { answered: 0, correct: 0 };
+  progress.byLevel[lvl].answered += 1;
+  if (isCorrect) progress.byLevel[lvl].correct += 1;
+
+  if (!isCorrect) {
+    progress.mistakes.unshift({
+      id: `${s}-${lvl}-${questionObj.q}`.slice(0, 140),
+      subject: s,
+      level: lvl,
+      q: questionObj.q,
+      correct: questionObj.correct,
+      chosen: chosenIndex,
+      at: new Date().toISOString()
+    });
+    progress.mistakes = progress.mistakes.slice(0, 300);
+  }
+
+  progress.lastSessionAt = new Date().toISOString();
+  saveProgress(progress);
+}
+
 // ===============================
 // HELPERS DE DATA (streak / hoje)
 // ===============================
@@ -24,6 +91,31 @@ function getLS(key, fallback) {
 }
 function setLS(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
+}
+// ===============================
+// CONTINUAR (salvar/retomar rodada)
+// ===============================
+function saveLastRun() {
+  const lastRun = {
+    subject: state.subject,
+    difficulty: state.difficulty,
+    mode: state.mode,
+    explain: state.explain,
+
+    goalMode: state.goalMode,
+    goalValue: state.goalValue,
+
+    simulado: state.simulado,
+    index: state.index, // questão atual
+
+    savedAt: new Date().toISOString(),
+  };
+
+  setLS("uqm_lastRun", lastRun);
+}
+
+function getLastRun() {
+  return getLS("uqm_lastRun", null);
 }
 
 // ===============================
@@ -48,6 +140,7 @@ const el = {
   todayBar: document.getElementById("todayBar"),
 
   startBtn: document.getElementById("startBtn"),
+  resumeBtn: document.getElementById("resumeBtn"),
   simuladoBtn: document.getElementById("simuladoBtn"),
   summaryBtn: document.getElementById("summaryBtn"),
   errorBtn: document.getElementById("errorBtn"),
@@ -76,7 +169,6 @@ const el = {
 // ===============================
 let state = {
   simulado: false,
-
   subject: "ALL",
   difficulty: "facil",
   mode: "normal",
@@ -85,24 +177,19 @@ let state = {
   pool: [],
   index: 0,
 
-  // desempenho
   xp: 0,
   combo: 0,
   correct: 0,
   wrong: 0,
 
-  // erros (caderno)
   errors: [],
 
-  // controle de clique
   answered: false,
   lastChoice: null,
 
-  // meta
   goalMode: "daily",
   goalValue: 30,
 
-  // hoje
   todayDone: 0,
 };
 
@@ -148,16 +235,14 @@ function loadTodayAndStreak() {
     today: {},
   });
 
-  // reset dia se mudou
   if (stats.lastDay !== key) {
-    // atualiza streak
     if (stats.lastDay) {
       const last = new Date(stats.lastDay);
       const now = new Date(key);
       const diffDays = Math.round((now - last) / (1000 * 60 * 60 * 24));
 
       if (diffDays === 1) stats.streak = (stats.streak || 0) + 1;
-      else stats.streak = 1; // reinicia
+      else stats.streak = 1;
     } else {
       stats.streak = 1;
     }
@@ -167,7 +252,6 @@ function loadTodayAndStreak() {
   }
 
   const todayObj = stats.today[key] || { done: 0 };
-
   state.todayDone = todayObj.done || 0;
 
   el.streak.textContent = String(stats.streak || 0);
@@ -178,7 +262,9 @@ function loadTodayAndStreak() {
   const denom = goalMode === "daily" ? goalValue : Math.max(goalValue, 1);
   el.todayProgress.textContent = `${state.todayDone}/${goalMode === "daily" ? denom : "∞"}`;
 
-  const pct = goalMode === "daily" && denom > 0 ? Math.min(100, (state.todayDone / denom) * 100) : 0;
+  const pct = goalMode === "daily" && denom > 0
+    ? Math.min(100, (state.todayDone / denom) * 100)
+    : 0;
   el.todayBar.style.width = `${pct}%`;
 
   setLS("uqm_stats", stats);
@@ -203,6 +289,9 @@ function showMenu() {
   el.menu.classList.remove("hidden");
   el.game.classList.add("hidden");
   el.summary.classList.add("hidden");
+
+  const lastRun = getLastRun();
+el.resumeBtn.style.display = lastRun ? "inline-block" : "none";
 }
 
 function showGame() {
@@ -246,7 +335,6 @@ function startGame(simulado) {
   state.simulado = !!simulado;
 
   if (state.simulado) {
-    // simulado força tudo
     el.subjectSelect.value = "ALL";
     el.difficultySelect.value = "mista";
   }
@@ -265,6 +353,46 @@ function startGame(simulado) {
   showGame();
   render();
 }
+function resumeLastRun() {
+  const lastRun = getLastRun();
+
+  if (!lastRun) {
+    alert("Ainda não existe uma rodada salva para continuar.");
+    return;
+  }
+
+  // 1) Coloca as seleções salvas de volta na interface
+  el.subjectSelect.value = lastRun.subject || "ALL";
+  el.difficultySelect.value = lastRun.difficulty || "facil";
+  el.modeSelect.value = lastRun.mode || "normal";
+  el.explainMode.value = lastRun.explain || "full";
+
+  el.goalMode.value = lastRun.goalMode || "daily";
+  el.goalInput.value = lastRun.goalValue ?? 30;
+
+  // 2) Aplica isso no estado e inicia uma rodada nova igual
+  applyConfigFromUI();
+  resetRunStats();
+
+  state.simulado = !!lastRun.simulado;
+
+  // 3) Recria o pool com os filtros salvos
+  state.pool = buildPool();
+
+  if (!state.pool.length) {
+    alert("⚠️ Não há questões para os filtros salvos. Ajuste Matéria/Dificuldade.");
+    showMenu();
+    return;
+  }
+
+  // 4) Volta pro índice salvo (com proteção pra não estourar)
+  const idx = Number(lastRun.index ?? 0);
+  state.index = Math.min(Math.max(idx, 0), state.pool.length - 1);
+
+  // 5) Abre o jogo e renderiza
+  showGame();
+  render();
+}
 
 // ===============================
 // RENDER
@@ -272,20 +400,16 @@ function startGame(simulado) {
 function render() {
   const q = state.pool[state.index];
 
-  // topo
   el.gameInfo.textContent = `${q.subject} • ${q.level.toUpperCase()} • Questão ${state.index + 1}`;
   el.xp.textContent = String(state.xp);
   el.combo.textContent = String(state.combo);
 
-  // progresso (corrigido: agora usa index+1)
   el.progressText.textContent = `Questão ${state.index + 1}/${state.pool.length}`;
   const pct = ((state.index + 1) / state.pool.length) * 100;
   el.progressFill.style.width = `${pct}%`;
 
-  // texto
   el.questionText.textContent = q.q;
 
-  // respostas
   el.answers.innerHTML = "";
   el.feedback.textContent = "";
   el.nextBtn.disabled = true;
@@ -296,9 +420,7 @@ function render() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.textContent = opt;
-
     btn.onclick = () => check(i);
-
     el.answers.appendChild(btn);
   });
 }
@@ -307,7 +429,6 @@ function render() {
 // CHECK (responder)
 // ===============================
 function shortExplanation(text) {
-  // modo curto: pega só a primeira frase ou até 120 chars
   if (!text) return "";
   const first = text.split(".")[0] + ".";
   return first.length <= 140 ? first : text.slice(0, 140) + "...";
@@ -322,33 +443,35 @@ function check(choice) {
   state.answered = true;
   state.lastChoice = choice;
 
-  // trava opções
   buttons.forEach(b => (b.disabled = true));
 
-  // marca correto/errado
+  // visual
   buttons.forEach((btn, i) => {
     if (i === q.correct) btn.classList.add("correct");
     if (i === choice && choice !== q.correct) btn.classList.add("wrong");
   });
 
+  const isCorrect = choice === q.correct;
+
+  // salva progresso UMA VEZ
+  registerAnswer(q, choice, isCorrect);
+
   const explainText = (state.explain === "short")
     ? shortExplanation(q.explanation)
     : q.explanation;
 
-  if (choice === q.correct) {
+  if (isCorrect) {
     state.correct += 1;
     state.combo += 1;
 
-    const gain = 10 + Math.min(10, state.combo); // combo dá bônus leve
+    const gain = 10 + Math.min(10, state.combo);
     state.xp += gain;
 
     el.feedback.textContent = `✅ Correto! (+${gain} XP)\n\n${explainText}`;
-
   } else {
     state.wrong += 1;
     state.combo = 0;
 
-    // salva erro no caderno (sem duplicar a mesma questão várias vezes)
     const key = `${q.subject}::${q.level}::${q.q}`;
     const already = state.errors.some(e => e.key === key);
 
@@ -366,7 +489,6 @@ function check(choice) {
     el.feedback.textContent =
       `❌ Errado.\n\n✅ Resposta correta: ${q.options[q.correct]}\n\n${explainText}`;
 
-    // modo chute: dá dica “por eliminação” (bem simples)
     if (state.mode === "chute") {
       const wrongs = q.options
         .map((t, idx) => ({ t, idx }))
@@ -379,12 +501,11 @@ function check(choice) {
     }
   }
 
-  // conta como feito hoje (uma vez por questão respondida)
   incrementTodayDone();
+  saveLastRun();
 
   el.nextBtn.disabled = false;
 
-  // meta diária
   if (state.goalMode === "daily" && state.goalValue > 0) {
     if (state.correct + state.wrong >= state.goalValue) {
       el.nextBtn.textContent = "Finalizar (meta batida)";
@@ -406,7 +527,6 @@ function finishRun(message) {
 }
 
 function nextQuestion() {
-  // se meta diária e já respondeu suficiente, finaliza
   if (state.goalMode === "daily" && state.goalValue > 0) {
     const done = state.correct + state.wrong;
     if (done >= state.goalValue) {
@@ -440,7 +560,7 @@ function renderPerformanceSummary(title) {
     <p><b>Erros:</b> ${state.wrong}</p>
     <p><b>Aproveitamento:</b> ${acc}%</p>
     <p><b>XP ganho:</b> ${state.xp}</p>
-    <p><b>Maior combo:</b> ${/* não guardamos histórico, mostra atual */ state.combo}</p>
+    <p><b>Combo atual:</b> ${state.combo}</p>
     <hr style="margin:12px 0; opacity:.3;">
     <p class="small">Dica: use o “Caderno de Erros” para revisar onde você está errando mais.</p>
   `;
@@ -476,6 +596,7 @@ function renderErrorsBook() {
 // EVENTOS
 // ===============================
 el.startBtn.addEventListener("click", () => startGame(false));
+el.resumeBtn.addEventListener("click", resumeLastRun);
 el.simuladoBtn.addEventListener("click", () => startGame(true));
 
 el.nextBtn.addEventListener("click", nextQuestion);
@@ -498,11 +619,9 @@ el.errorBtn.addEventListener("click", () => {
 
 el.backFromSummary.addEventListener("click", () => showMenu());
 
-// Atualiza total de questões quando muda filtros
 el.subjectSelect.addEventListener("change", updateTotalQuestionsUI);
 el.difficultySelect.addEventListener("change", updateTotalQuestionsUI);
 
-// Atualiza “hoje” quando muda meta
 el.goalMode.addEventListener("change", loadTodayAndStreak);
 el.goalInput.addEventListener("input", loadTodayAndStreak);
 
@@ -522,10 +641,10 @@ function shuffle(arr) {
 updateTotalQuestionsUI();
 loadTodayAndStreak();
 showMenu();
+
 // ================================
 // SERVICE WORKER (MODO OFFLINE)
 // ================================
-
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
