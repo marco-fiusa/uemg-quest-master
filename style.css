@@ -1,0 +1,274 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  min-height: 100vh;
+  color: #222;
+}
+
+/* APP */
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* HEADER */
+.header {
+  text-align: center;
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 2.2rem;
+}
+
+.header p {
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+/* CARD */
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+  margin-bottom: 20px;
+}
+
+/* HIDDEN */
+.hidden {
+  display: none;
+}
+
+/* GRID */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+/* LABELS & INPUTS */
+label {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: block;
+}
+
+select,
+input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+}
+
+input[type="number"] {
+  text-align: center;
+}
+
+/* BUTTONS */
+button {
+  border: none;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Primary */
+.btn-primary {
+  background: #2a5298;
+  color: #fff;
+  font-weight: 700;
+  margin-top: 10px;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1e3c72;
+  transform: translateY(-1px);
+}
+
+/* Secondary */
+.btn-secondary {
+  background: #f0f0f0;
+  color: #333;
+  font-weight: 600;
+}
+
+.btn-secondary:hover {
+  background: #e0e0e0;
+}
+
+/* Simulado */
+.btn-simulado {
+  background: linear-gradient(135deg, #ff9800, #ff5722);
+  color: #fff;
+  font-weight: 800;
+  margin: 12px 0;
+}
+
+.btn-simulado:hover {
+  filter: brightness(1.05);
+  transform: scale(1.01);
+}
+
+/* META */
+.goalBox {
+  background: #f8f9fb;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 14px;
+}
+
+.goalBox h3 {
+  margin-bottom: 8px;
+}
+
+/* STATS */
+.stats {
+  background: #f3f6fa;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+}
+
+.stats .bar {
+  background: #ddd;
+  height: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.stats #todayBar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #4caf50, #81c784);
+}
+
+/* GAME TOP */
+.top {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+/* PROGRESS */
+.progress {
+  margin-bottom: 14px;
+}
+
+.progress .bar {
+  background: #ddd;
+  height: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+#progressFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #2196f3, #64b5f6);
+}
+
+/* QUESTION */
+#questionText {
+  font-size: 1.1rem;
+  margin-bottom: 14px;
+}
+
+/* ANSWERS */
+.answers {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.answers button {
+  text-align: left;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #e0e0e0;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.answers button:hover:not(:disabled) {
+  background: #eef3ff;
+  border-color: #90caf9;
+}
+
+/* FEEDBACK */
+.feedback {
+  background: #f9f9f9;
+  border-left: 5px solid #2196f3;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  white-space: pre-line;
+}
+
+/* CORRETO / ERRADO */
+.correct {
+  background: #e8f5e9 !important;
+  border-color: #4caf50 !important;
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+.wrong {
+  background: #ffebee !important;
+  border-color: #f44336 !important;
+  color: #c62828;
+  font-weight: 700;
+}
+
+/* ACTIONS */
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* SMALL TEXT */
+.small {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 6px;
+}
+
+/* SUMMARY */
+#summaryContent {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* RESPONSIVO */
+@media (max-width: 600px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

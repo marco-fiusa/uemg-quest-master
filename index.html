@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>UEMG Quest Master</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <h1>🎮 UEMG Quest Master</h1>
+    <p>Aprendizado inteligente • Simulação real • Aprovação estratégica</p>
+  </header>
+
+  <!-- MENU PRINCIPAL -->
+  <section id="menu" class="card">
+
+    <h2>Configurar Estudo</h2>
+
+    <!-- MATÉRIA / DIFICULDADE -->
+    <div class="grid-2">
+      <div>
+        <label>Matéria</label>
+        <select id="subjectSelect">
+          <option value="ALL">📚 Todas as matérias</option>
+          <option value="Matemática">Matemática</option>
+          <option value="Português">Português</option>
+          <option value="Física">Física</option>
+          <option value="Química">Química</option>
+          <option value="Biologia">Biologia</option>
+          <option value="História">História</option>
+          <option value="Geografia">Geografia</option>
+          <option value="Espanhol">Espanhol</option>
+          <option value="Inglês">Inglês</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Dificuldade</label>
+        <select id="difficultySelect">
+          <option value="facil">🟢 Fácil</option>
+          <option value="moderada">🟡 Moderada</option>
+          <option value="dificil">🔴 Difícil</option>
+          <option value="mista">🎲 Mista</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- MODO / EXPLICAÇÃO -->
+    <div class="grid-2">
+      <div>
+        <label>Modo</label>
+        <select id="modeSelect">
+          <option value="normal">📘 Aprendizado</option>
+          <option value="chute">🎯 Chute inteligente</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Explicação</label>
+        <select id="explainMode">
+          <option value="full">Completa (didática)</option>
+          <option value="short">Curta (revisão)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- META -->
+    <div class="goalBox">
+      <h3>Objetivo</h3>
+
+      <div class="grid-2">
+        <select id="goalMode">
+          <option value="daily">🎯 Meta diária</option>
+          <option value="free">♾️ Sem meta (todas as questões)</option>
+        </select>
+
+        <input id="goalInput" type="number" min="1" value="30" />
+      </div>
+
+      <p class="small">
+        Total de questões disponíveis: <b><span id="totalQuestions">0</span></b>
+      </p>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats">
+      <div>🔥 Streak: <span id="streak">0</span> dias</div>
+      <div>🎯 Hoje: <span id="todayProgress">0/0</span></div>
+      <div class="bar">
+        <div id="todayBar"></div>
+      </div>
+    </div>
+
+    <!-- BOTÕES PRINCIPAIS -->
+    <button id="startBtn" class="btn-primary">▶ Começar Estudo</button>
+
+    <!-- BOTÃO EXCLUSIVO DE SIMULADO -->
+    <button id="simuladoBtn" class="btn-simulado">
+      📝 Simulado UEMG (Prova Completa)
+    </button>
+
+    <div class="grid-2">
+      <button id="summaryBtn" class="btn-secondary">📊 Desempenho</button>
+      <button id="errorBtn" class="btn-secondary">📒 Caderno de Erros</button>
+    </div>
+
+  </section>
+
+  <!-- ÁREA DO JOGO -->
+  <section id="game" class="card hidden">
+
+    <div class="top">
+      <div id="gameInfo">Matéria • Nível • Questão</div>
+      <div>
+        XP: <span id="xp">0</span> |
+        Combo: <span id="combo">0</span>
+      </div>
+    </div>
+
+    <div class="progress">
+      <span id="progressText">Questão 0/0</span>
+      <div class="bar">
+        <div id="progressFill"></div>
+      </div>
+    </div>
+
+    <h3 id="questionText">Pergunta</h3>
+
+    <div id="answers" class="answers"></div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <div class="actions">
+      <button id="nextBtn" class="btn-primary" disabled>Próxima</button>
+      <button id="backMenuBtn" class="btn-secondary">⬅ Menu</button>
+    </div>
+
+  </section>
+
+  <!-- RESUMO -->
+  <section id="summary" class="card hidden">
+    <h2 id="summaryTitle">📊 Resumo</h2>
+    <div id="summaryContent"></div>
+    <button id="backFromSummary" class="btn-secondary">⬅ Voltar ao menu</button>
+  </section>
+
+</div>
+
+<!-- IMPORTANTE: agora é module para poder importar questions.js -->
+<script type="module" src="script.js"></script>
+</body>
+</html>
